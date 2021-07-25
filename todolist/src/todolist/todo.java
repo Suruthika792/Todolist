@@ -1,0 +1,241 @@
+package todolist;
+
+import java.awt.BorderLayout;
+import java.awt.EventQueue;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
+import java.awt.Font;
+import javax.swing.JTextField;
+import javax.swing.JTextArea;
+import javax.sql.RowSetMetaData;
+import javax.swing.JButton;
+import java.awt.Color;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.util.Vector;
+import java.awt.event.ActionEvent;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+
+import javax.swing.JScrollPane;
+
+public class todo extends JFrame {
+
+	protected static  final String  = null;
+	private JPanel contentPane;
+	private JTextField textField;
+	private JTable table;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					todo frame = new todo();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 */
+	Connection con = null;
+	private JLabel textArea;
+	public todo() {
+		con = (Connection) DB.dbconnect();
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 580, 497);
+		contentPane = new JPanel();
+		contentPane.setBackground(Color.LIGHT_GRAY);
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(contentPane);
+		contentPane.setLayout(null);
+		
+		JLabel lblNewLabel_1 = new JLabel("My To-Do List");
+		lblNewLabel_1.setFont(new Font("Times New Roman", Font.BOLD, 35));
+		lblNewLabel_1.setBounds(152, 26, 294, 53);
+		contentPane.add(lblNewLabel_1);
+		
+		JLabel lblNewLabel = new JLabel("Important Task");
+		lblNewLabel.setFont(new Font("Times New Roman", Font.BOLD, 15));
+		lblNewLabel.setBounds(10, 134, 121, 20);
+		contentPane.add(lblNewLabel);
+		
+		JLabel lblNewLabel_2 = new JLabel("Other Tasks");
+		lblNewLabel_2.setFont(new Font("Times New Roman", Font.PLAIN, 15));
+		lblNewLabel_2.setBounds(21, 196, 87, -25);
+		contentPane.add(lblNewLabel_2);
+		
+		textField = new JTextField();
+		textField.setBounds(121, 135, 150, 20);
+		contentPane.add(textField);
+		textField.setColumns(10);
+		
+		JTextArea textArea = new JTextArea();
+		textArea.setBounds(121, 182, 152, 198);
+		contentPane.add(textArea);
+		
+		JButton btnNewButton = new JButton("Add");
+		btnNewButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try
+				{
+			    Class.forName("com.mysql.cj.jdbc.Driver");		
+		        Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/todolist","root", "1234567");
+				String imp= textField.getText();
+				String other= textArea.getText();
+				
+	            PreparedStatement pst =con.prepareStatement("insert into todo(important,other) values(?,?)");
+				pst.setString(1, imp);
+				pst.setString(2, other);
+				pst.executeUpdate();
+				JOptionPane.showMessageDialog(null, "task added");
+				textField.setText("");
+				textArea.setText("");
+				int a;
+				PreparedStatement pst1 =con.prepareStatement("select * from todo");
+				ResultSet rs = pst1.executeQuery();
+				ResultSetMetaData rd = (ResultSetMetaData) rs.getMetaData();
+				a=  ((java.sql.ResultSetMetaData) rd).getColumnCount();
+				DefaultTableModel df = (DefaultTableModel)table.getModel();
+				df.setRowCount(0);
+				while(rs.next())
+				{
+					Vector v2 = new Vector();
+					for(int i=1;i<=a;i++)
+					{
+                      v2.add(rs.getNString("id"));
+                      v2.add(rs.getNString("id"));
+                      v2.add(rs.getNString("id"));
+                    }
+					df.addRow(v2);
+				}
+				}
+				catch(Exception e1) {
+					e1.printStackTrace();
+				}
+				
+			}
+		});
+		btnNewButton.setFont(new Font("Times New Roman", Font.PLAIN, 15));
+		btnNewButton.setBounds(10, 403, 89, 23);
+		contentPane.add(btnNewButton);
+		
+		JButton btnNewButton_1 = new JButton("Edit");
+		btnNewButton_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				DefaultTableModel df = (DefaultTableModel)table.getModel();
+				int s= table.getSelectedRow();
+				int id= Integer.parseInt(df.getValueAt(s,0).toString());
+				try {
+					Class.forName("com.mysql.cj.jdbc.Driver");		
+			        Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/todolist","root", "1234567");
+					String imp=textField.getText();
+					String other=textArea.getText();
+					
+					PreparedStatement pst =(PreparedStatement)con.prepareStatement("upate todo set important=?,other=? where id=?");
+					pst.setString(1, imp);
+					pst.setString(2,other);
+					pst.setInt(3, id);
+					pst.executeUpdate();
+					JOptionPane.showMessageDialog(null,"List updated");
+					textField.setText("");
+					textArea.setText("");
+					int a;
+					PreparedStatement pst1 =con.prepareStatement("select * from todo");
+					ResultSet rs = pst1.executeQuery();
+					ResultSetMetaData rd = (ResultSetMetaData) rs.getMetaData();
+					a= ((java.sql.ResultSetMetaData) rd).getColumnCount();
+					DefaultTableModel df1 = (DefaultTableModel)table.getModel();
+					df1.setRowCount(0);
+					while(rs.next())
+					{
+						Vector v2 = new Vector();
+						for(int i=1;i<=a;i++)
+						{
+							v2.add(rs.getNString("id"));
+	                      v2.add(rs.getNString("id"));
+	                      v2.add(rs.getNString("id"));
+	                    }
+						
+					}
+					}
+					catch(Exception e1) {
+						e1.printStackTrace();
+					}
+						
+					}
+				
+			}
+		);
+		btnNewButton_1.setFont(new Font("Times New Roman", Font.PLAIN, 15));
+		btnNewButton_1.setBounds(109, 403, 89, 23);
+		contentPane.add(btnNewButton_1);
+		
+		JButton btnNewButton_2 = new JButton("Done");
+		btnNewButton_2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		});
+		btnNewButton_2.setFont(new Font("Times New Roman", Font.PLAIN, 15));
+		btnNewButton_2.setBounds(213, 403, 89, 23);
+		contentPane.add(btnNewButton_2);
+		
+		JLabel lblNewLabel_3 = new JLabel("Other Tasks");
+		lblNewLabel_3.setFont(new Font("Times New Roman", Font.BOLD, 15));
+		lblNewLabel_3.setBounds(10, 187, 98, 32);
+		contentPane.add(lblNewLabel_3);
+		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.addMouseListener(new MouseAdapter() {
+			public void MouseClicked(MouseEvent e) {
+				
+			}
+				
+		});
+			
+
+		
+		scrollPane.setBounds(300, 142, 254, 238);
+		contentPane.add(scrollPane);
+		
+		table = new JTable();
+		table.addMouseListener(new MouseAdapter() {
+             public void mouseClicked(MouseEvent e) {
+			    DefaultTableModel df = (DefaultTableModel)table.getModel();
+			    int selected = table.getSelectedRow();
+			    int id=Integer.parseInt(df.getValueAt(selected, 0).toString());
+			    textField.setText(df.getValueAt(selected,1).toString());
+			    textArea.setText(df.getValueAt(selected,2).toString());
+			    btnNewButton.setEnabled(false);
+			    
+             }    
+			    });
+		scrollPane.setViewportView(table);
+		table.setModel(new DefaultTableModel(
+			new Object[][] {
+			},
+			new String[] {
+				"ID", "important", "Other"
+			}
+		));
+	}
+}
